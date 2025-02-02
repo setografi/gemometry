@@ -1,248 +1,238 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-// import Button from "../components/common/Button";
+import React, { useEffect, useState, useRef } from "react";
+
+import { ScoringSystem, FoodSystem } from "../utils/GameSystems";
+import Player from "../components/game/Player";
+import Map from "../components/game/Map";
+import Popup from "../components/common/Popup";
 
 function GamePage() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const animationFrameIdRef = useRef(null);
+  const scoringSystem = useRef(new ScoringSystem());
+  const foodSystem = useRef(new FoodSystem(20));
+
+  const gridSize = 20;
+  const updateInterval = 200; // Diperlambat dari 100 menjadi 200 ms
+
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
-  const [targetPos, setTargetPos] = useState({ x: 0, y: 0 });
-  const [cameraOffset, setCameraOffset] = useState({ x: 0, y: 0 });
-  const [particles, setParticles] = useState([]);
-  const [rotation, setRotation] = useState(0);
-  const [isMoving, setIsMoving] = useState(false);
-  const [targetAngle, setTargetAngle] = useState(0);
-  const [fadeOut, setFadeOut] = useState(1);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [gameState, setGameState] = useState({
+    snake: [{ x: 0, y: 0 }],
+    food: null,
+    direction: { x: 1, y: 0 },
+    isGameOver: false,
+  });
+  const [isEating, setIsEating] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
-  const playerSize = 30;
-  const speed = 3;
-  const spinSpeed = 5; // Degrees per frame
-  const worldSize = { width: 3000, height: 2000 };
-
-  const handleClick = useCallback(
-    (e) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left + cameraOffset.x;
-      const y = e.clientY - rect.top + cameraOffset.y;
-
-      // Calculate angle between current position and click position
-      const dx = x - playerPos.x;
-      const dy = y - playerPos.y;
-      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-      setTargetPos({ x, y });
-      setTargetAngle(angle);
-      setIsMoving(true);
-      setFadeOut(1); // Reset fade out when starting to move
-    },
-    [cameraOffset, playerPos]
-  );
-
-  const handleTouchStart = useCallback(
-    (e) => {
-      const touch = e.touches[0];
-      handleClick(touch);
-    },
-    [handleClick]
-  );
-
+  // Initialize game dimensions and starting positions
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const width =
+          Math.floor(containerRef.current.clientWidth / gridSize) * gridSize;
+        const height =
+          Math.floor(containerRef.current.clientHeight / gridSize) * gridSize;
+        setDimensions({ width, height });
 
-    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+        // Initialize snake and food positions only if not already set
+        if (gameState.snake[0].x === 0 && gameState.snake[0].y === 0) {
+          const initialX = Math.floor(width / (2 * gridSize)) * gridSize;
+          const initialY = Math.floor(height / (2 * gridSize)) * gridSize;
+          const initialSnake = [{ x: initialX, y: initialY }];
 
-    return () => {
-      canvas.removeEventListener("touchstart", handleTouchStart);
-    };
-  }, [handleTouchStart]);
+          // Generate initial food
+          const initialFood = foodSystem.current.generateFood(
+            width,
+            height,
+            initialSnake
+          );
 
-  const updateDimensions = useCallback(() => {
-    if (containerRef.current) {
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-
-      setDimensions({ width, height });
-
-      if (playerPos.x === 0 && playerPos.y === 0) {
-        const initialPos = {
-          x: width / 2,
-          y: height / 2,
-        };
-        setPlayerPos(initialPos);
-        setTargetPos(initialPos);
+          setGameState((prev) => ({
+            ...prev,
+            snake: initialSnake,
+            food: initialFood,
+          }));
+        }
       }
-    }
-  }, [playerPos.x, playerPos.y]);
+    };
 
-  useEffect(() => {
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
-  }, [updateDimensions]);
+  }, []);
 
+  // Handle keyboard controls
   useEffect(() => {
-    if (!canvasRef.current || dimensions.width === 0) return;
+    const handleKeyPress = (e) => {
+      if (gameState.isGameOver) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-
-    let currentPlayerPos = { ...playerPos };
-    let currentParticles = [...particles];
-    let currentRotation = rotation;
-
-    const createParticle = (x, y) => ({
-      x,
-      y,
-      vx: (Math.random() - 0.5) * 2,
-      vy: (Math.random() - 0.5) * 2,
-      life: 1,
-      size: Math.random() * 4 + 2,
-    });
-
-    const update = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Update player position
-      const dx = targetPos.x - currentPlayerPos.x;
-      const dy = targetPos.y - currentPlayerPos.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance > 1) {
-        const newX = currentPlayerPos.x + (dx / distance) * speed;
-        const newY = currentPlayerPos.y + (dy / distance) * speed;
-
-        currentPlayerPos = {
-          x: Math.max(playerSize, Math.min(worldSize.width - playerSize, newX)),
-          y: Math.max(
-            playerSize,
-            Math.min(worldSize.height - playerSize, newY)
-          ),
-        };
-
-        setPlayerPos(currentPlayerPos);
-
-        // Rotate towards target angle while moving
-        const angleDiff = targetAngle - currentRotation;
-        currentRotation +=
-          Math.sign(angleDiff) * Math.min(Math.abs(angleDiff), spinSpeed);
-        setRotation(currentRotation);
-
-        if (Math.random() < 0.3) {
-          currentParticles.push(
-            createParticle(currentPlayerPos.x, currentPlayerPos.y)
-          );
-        }
-      } else {
-        if (isMoving) {
-          setIsMoving(false);
-          // Start fade out when stopping
-          setFadeOut((prevFade) => Math.max(0, prevFade - 0.05));
-        }
-      }
-
-      // Update camera position
-      const targetCameraX = currentPlayerPos.x - dimensions.width / 2;
-      const targetCameraY = currentPlayerPos.y - dimensions.height / 2;
-
-      const newCameraOffset = {
-        x: Math.max(
-          0,
-          Math.min(worldSize.width - dimensions.width, targetCameraX)
-        ),
-        y: Math.max(
-          0,
-          Math.min(worldSize.height - dimensions.height, targetCameraY)
-        ),
+      const directions = {
+        ArrowUp: { x: 0, y: -1 },
+        ArrowDown: { x: 0, y: 1 },
+        ArrowLeft: { x: -1, y: 0 },
+        ArrowRight: { x: 1, y: 0 },
       };
 
-      setCameraOffset(newCameraOffset);
-
-      // Render
-      ctx.save();
-      ctx.translate(-newCameraOffset.x, -newCameraOffset.y);
-
-      // Draw grid
-      ctx.strokeStyle = "rgba(160, 160, 160, 0.2)";
-      ctx.beginPath();
-      for (let x = 0; x < worldSize.width; x += 100) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, worldSize.height);
+      if (directions[e.key]) {
+        const newDirection = directions[e.key];
+        // Prevent 180-degree turns
+        setGameState((prev) => {
+          if (
+            prev.direction.x === -newDirection.x &&
+            prev.direction.y === -newDirection.y
+          ) {
+            return prev;
+          }
+          return { ...prev, direction: newDirection };
+        });
       }
-      for (let y = 0; y < worldSize.height; y += 100) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(worldSize.width, y);
-      }
-      ctx.stroke();
+    };
 
-      // Draw player with rotation
-      ctx.save();
-      ctx.translate(currentPlayerPos.x, currentPlayerPos.y);
-      ctx.rotate((currentRotation * Math.PI) / 180);
-      ctx.fillStyle = `rgba(217, 87, 128, ${fadeOut})`;
-      ctx.fillRect(-playerSize / 2, -playerSize / 2, playerSize, playerSize);
-      ctx.restore();
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [gameState.isGameOver]);
 
-      // Update particles
-      currentParticles = currentParticles
-        .map((particle) => ({
-          ...particle,
-          x: particle.x + particle.vx,
-          y: particle.y + particle.vy,
-          life: particle.life - 0.02,
-        }))
-        .filter((particle) => particle.life > 0);
+  // Check for collisions
+  const checkCollision = (head, snakeBody) => {
+    // Check collision with self
+    return snakeBody.some((segment, index) => {
+      // Skip the head
+      if (index === 0) return false;
+      return segment.x === head.x && segment.y === head.y;
+    });
+  };
 
-      setParticles(currentParticles);
+  // Main game loop
+  useEffect(() => {
+    if (!canvasRef.current || dimensions.width === 0 || gameState.isGameOver)
+      return;
 
-      // Draw particles
-      currentParticles.forEach((particle) => {
-        ctx.fillStyle = `rgba(196, 78, 113, ${particle.life})`;
-        ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+    const gameLoop = setInterval(() => {
+      setGameState((prev) => {
+        // Calculate new head position
+        const newHead = {
+          x:
+            (prev.snake[0].x + prev.direction.x * gridSize + dimensions.width) %
+            dimensions.width,
+          y:
+            (prev.snake[0].y +
+              prev.direction.y * gridSize +
+              dimensions.height) %
+            dimensions.height,
+        };
+
+        // Check for collisions
+        if (checkCollision(newHead, prev.snake)) {
+          return { ...prev, isGameOver: true };
+        }
+
+        // Check if snake ate food
+        const ateFood =
+          prev.food && newHead.x === prev.food.x && newHead.y === prev.food.y;
+
+        if (ateFood) {
+          // Trigger eating animation
+          setIsEating(true);
+          setTimeout(() => setIsEating(false), 200); // Reset after 200ms
+
+          // Update score
+          const newScore = scoringSystem.current.addScore(1); // Selalu tambah 1 point
+          setScore(newScore);
+          setHighScore(scoringSystem.current.getHighScore());
+
+          // IF Score 20 open Popup
+          if (newScore === 20) {
+            setShowPopup(true);
+          }
+
+          // Generate new food
+          const newSnake = [newHead, ...prev.snake];
+          const newFood = foodSystem.current.generateFood(
+            dimensions.width,
+            dimensions.height,
+            newSnake
+          );
+
+          // Snake grows by one segment
+          return {
+            ...prev,
+            snake: newSnake, // Menambah satu segment saja
+            food: newFood,
+          };
+        }
+
+        // Normal movement without growth
+        const newSnake = [newHead, ...prev.snake.slice(0, -1)];
+
+        return {
+          ...prev,
+          snake: newSnake,
+        };
       });
+    }, updateInterval);
 
-      ctx.restore();
+    return () => clearInterval(gameLoop);
+  }, [dimensions, gameState.isGameOver]);
 
-      animationFrameIdRef.current = requestAnimationFrame(update);
-    };
+  // Handle game over
+  const handleRestart = () => {
+    const initialX = Math.floor(dimensions.width / (2 * gridSize)) * gridSize;
+    const initialY = Math.floor(dimensions.height / (2 * gridSize)) * gridSize;
+    const initialSnake = [{ x: initialX, y: initialY }];
+    const initialFood = foodSystem.current.generateFood(
+      dimensions.width,
+      dimensions.height,
+      initialSnake
+    );
 
-    update();
-    return () => {
-      if (animationFrameIdRef.current) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
-    };
-  }, [
-    dimensions.width,
-    dimensions.height,
-    targetPos,
-    rotation,
-    isMoving,
-    targetAngle,
-    fadeOut,
-  ]);
+    scoringSystem.current.resetScore();
+    setScore(0);
+
+    setGameState({
+      snake: initialSnake,
+      food: initialFood,
+      direction: { x: 1, y: 0 },
+      isGameOver: false,
+    });
+  };
 
   return (
     <section
       ref={containerRef}
       className="fixed inset-0 w-full h-full overflow-hidden"
     >
-      <canvas
-        ref={canvasRef}
-        width={dimensions.width}
-        height={dimensions.height}
-        className="bg-dark-background-primary cursor-pointer"
-        style={{ touchAction: "none" }}
-        onClick={handleClick}
-      />
+      <div className="absolute top-4 left-4 text-white z-10">
+        <div className="text-2xl">Score: {score}</div>
+        <div className="text-lg">High Score: {highScore}</div>
+      </div>
 
-      {/* <div className="absolute">
-        <Button setCurrentPage={setCurrentPage} />
-      </div> */}
+      {gameState.isGameOver && (
+        <div className="absolute inset-0 bg-[#121212] bg-opacity-50 flex items-center justify-center z-20">
+          <div className="bg-white p-8 rounded-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
+            <p className="text-lg mb-4">Final Score: {score}</p>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={handleRestart}
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPopup && <Popup onClose={() => setShowPopup(false)} />}
+
+      <Map canvasRef={canvasRef} dimensions={dimensions} gridSize={gridSize} />
+      <Player
+        canvasRef={canvasRef}
+        snake={gameState.snake}
+        food={gameState.food}
+        gridSize={gridSize}
+        isEating={isEating}
+      />
     </section>
   );
 }
