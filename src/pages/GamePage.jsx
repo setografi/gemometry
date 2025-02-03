@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { ScoringSystem, FoodSystem } from "../utils/GameSystems";
 import Player from "../components/game/Player";
 import Map from "../components/game/Map";
+import VirtualPad from "../components/common/VirtualPad";
 import Popup from "../components/common/Popup";
 
 function GamePage() {
@@ -93,6 +94,19 @@ function GamePage() {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [gameState.isGameOver]);
+
+  //Handle virtual controls for mobile + tablet
+  const handleVirtualPadInput = (newDirection) => {
+    setGameState((prev) => {
+      if (
+        prev.direction.x === -newDirection.x &&
+        prev.direction.y === -newDirection.y
+      ) {
+        return prev;
+      }
+      return { ...prev, direction: newDirection };
+    });
+  };
 
   // Check for collisions
   const checkCollision = (head, snakeBody) => {
@@ -233,6 +247,8 @@ function GamePage() {
         gridSize={gridSize}
         isEating={isEating}
       />
+
+      <VirtualPad onDirectionChange={handleVirtualPadInput} />
     </section>
   );
 }

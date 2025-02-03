@@ -2,18 +2,26 @@ import React, { useEffect } from "react";
 
 function Player({ canvasRef, snake, food, gridSize, isEating }) {
   const drawSnakeSegment = (ctx, segment, index, total, isEating) => {
-    // Calculate color gradient from head to tail
-    const headColor = { r: 77, g: 77, b: 255 }; // Warna neon pink untuk kepala
+    const headColor = { r: 77, g: 77, b: 255 }; // Warna asli untuk kepala
     const tailColor = { r: 92, g: 92, b: 182 }; // Warna lebih gelap untuk ekor
 
     const gradientFactor = index / total;
-    const segmentColor = {
-      r: Math.floor(headColor.r + (tailColor.r - headColor.r) * gradientFactor),
-      g: Math.floor(headColor.g + (tailColor.g - headColor.g) * gradientFactor),
-      b: Math.floor(headColor.b + (tailColor.b - headColor.b) * gradientFactor),
-    };
+    const segmentColor =
+      total === 0
+        ? headColor // Set Warna Default saat hanya 1 kotak
+        : {
+            r: Math.floor(
+              headColor.r + (tailColor.r - headColor.r) * gradientFactor
+            ),
+            g: Math.floor(
+              headColor.g + (tailColor.g - headColor.g) * gradientFactor
+            ),
+            b: Math.floor(
+              headColor.b + (tailColor.b - headColor.b) * gradientFactor
+            ),
+          };
 
-    // Menambahkan efek neon
+    // Efek neon
     ctx.shadowColor = `rgb(${segmentColor.r}, ${segmentColor.g}, ${segmentColor.b})`;
     ctx.shadowBlur = 15;
     ctx.fillStyle = `rgb(${segmentColor.r}, ${segmentColor.g}, ${segmentColor.b})`;
