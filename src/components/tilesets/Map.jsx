@@ -41,7 +41,7 @@ function Map({ canvasRef, dimensions, gridSize }) {
     // Fungsi untuk menggambar bintang
     const drawStars = () => {
       const stars = [];
-      const starCount = 100;
+      const starCount = 50;
 
       // Inisialisasi bintang
       for (let i = 0; i < starCount; i++) {
@@ -106,6 +106,7 @@ function Map({ canvasRef, dimensions, gridSize }) {
         ref={starCanvasRef}
         className="absolute inset-0 w-full h-full bg-[#121212] -z-10"
       />
+
       {/* Canvas untuk grid */}
       <canvas
         ref={canvasRef}

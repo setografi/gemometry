@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
+import Food from "./Food";
+import PowerUp from "./PowerUp";
 
-function Player({ canvasRef, snake, food, gridSize, isEating }) {
+function Player({ canvasRef, snake, food, powerUp, gridSize, isEating }) {
   const drawSnakeSegment = (ctx, segment, index, total, isEating) => {
     const headColor = { r: 77, g: 77, b: 255 }; // Warna asli untuk kepala
     const tailColor = { r: 92, g: 92, b: 182 }; // Warna lebih gelap untuk ekor
@@ -43,7 +45,7 @@ function Player({ canvasRef, snake, food, gridSize, isEating }) {
     }
 
     // Draw rounded rectangle for each segment
-    const radius = 10;
+    const radius = 5;
     ctx.beginPath();
     ctx.moveTo(posX + radius, posY);
     ctx.lineTo(posX + width - radius, posY);
@@ -99,24 +101,9 @@ function Player({ canvasRef, snake, food, gridSize, isEating }) {
       drawSnakeSegment(ctx, segment, index, snake.length - 1, isEating);
     });
 
-    // Draw food with neon effect
-    if (food) {
-      ctx.shadowColor = food.color;
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = food.color;
-
-      const centerX = food.x + gridSize / 2 - 1;
-      const centerY = food.y + gridSize / 2 - 1;
-      const radius = (gridSize - 4) / 2;
-
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Reset shadow effect
-      ctx.shadowBlur = 0;
-    }
-  }, [canvasRef, snake, food, gridSize, isEating]);
+    Food(ctx, food, gridSize);
+    PowerUp(ctx, powerUp, gridSize);
+  }, [canvasRef, snake, food, powerUp, gridSize, isEating]);
 
   return null;
 }
