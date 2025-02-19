@@ -46,11 +46,11 @@ function Map({ canvasRef, dimensions, gridSize }) {
       // Inisialisasi bintang
       for (let i = 0; i < starCount; i++) {
         const colorChoices = [
-          "rgba(173, 216, 230, 1)", // Light Blue
-          "rgba(238, 130, 238, 1)", // Violet
-          "rgba(135, 206, 235, 1)", // Sky Blue
-          "rgba(240, 248, 255, 1)", // Alice Blue (Soft White)
-          "rgba(216, 191, 216, 1)", // Lavender
+          "rgba(200, 220, 255, 1)", // ✨ Soft White Blue
+          "rgba(180, 160, 255, 0.9)", // ✨ Soft Neon Purple
+          "rgba(150, 200, 250, 1)", // ✨ Light Sky Blue
+          "rgba(255, 245, 230, 0.95)", // ✨ Warm White
+          "rgba(210, 180, 255, 0.8)", // ✨ Soft Lavender Glow
         ];
 
         const colorChoice = Math.floor(Math.random() * colorChoices.length);

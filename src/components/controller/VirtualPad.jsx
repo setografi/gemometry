@@ -17,7 +17,7 @@ const VirtualPad = ({ onDirectionChange }) => {
   if (!isMobile) return null; // Hanya render di mobile
 
   return (
-    <div className="fixed bottom-6 left-6 z-30 flex items-center justify-center">
+    <div className="fixed bottom-6 left-6 z-20 flex items-center justify-center">
       <div className="relative p-3 w-32 h-32 flex items-center justify-center">
         <button
           className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-[#121212] bg-opacity-10 backdrop-blur-md border border-white border-opacity-20 rounded-lg text-white font-bold active:scale-90"

@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { Menu } from "lucide-react";
 
+import { useGameStore } from "../utils/store/gameStore";
 import { ScoringSystem } from "../utils/systems/ScoringSystem";
 import { FoodSystem } from "../utils/systems/FoodSystem";
 import { PowerUpSystem } from "../utils/systems/PowerUpSystem";
-import { useGameStore } from "../utils/store/gameStore";
+
 import Player from "../components/sprites/Player";
 import Map from "../components/tilesets/Map";
-import VirtualPad from "../components/ui/VirtualPad";
-// import Popup from "../components/ui/Popup";
+import VirtualPad from "../components/controller/VirtualPad";
+import Popup from "../components/common/Popup";
+import GameMenu from "../components/layout/GameMenu";
 
 function GamePage() {
   const containerRef = useRef(null);
@@ -27,7 +30,7 @@ function GamePage() {
   } = useGameStore();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isEating, setIsEating] = useState(false);
-  // const [showPopup, setShowPopup] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Initialize game dimensions and starting positions
   useEffect(() => {
@@ -171,10 +174,6 @@ function GamePage() {
           updateScore(newScore);
           updateHighScore(scoringSystem.current.getHighScore());
 
-          // if (newScore === 20) {
-          //   setShowPopup(true);
-          // }
-
           // Generate new food
           const newSnake = [newHead, ...prev.snake];
           const newFood = foodSystem.current.generateFood(
@@ -263,19 +262,40 @@ function GamePage() {
       ref={containerRef}
       className="fixed inset-0 w-full h-full overflow-hidden"
     >
-      <div className="absolute top-4 left-4 flex flex-row space-x-6 z-10">
-        <h2 className="text-base md:text-lg text-white font-bold">
-          Score: {score}
-        </h2>
-        <h2 className="text-base md:text-lg text-white">
-          High Score: {highScore}
-        </h2>
-        {powerUpSystem.current.isActive() && (
-          <h2 className="text-base md:text-lg text-yellow-400">
-            Power-up: {powerUpSystem.current.getActivePowerUp()}
-          </h2>
-        )}
+      <div className="absolute top-4 w-full flex flex-row justify-between px-6 z-10">
+        <button
+          onClick={() => setIsMenuOpen(true)}
+          className="bg-purple-600 p-2 rounded-lg"
+        >
+          <Menu className="text-white" size={24} />
+        </button>
+
+        <div className="flex flex-col space-y-2">
+          <div className="flex flex-row space-x-6">
+            <h3 className="text-base md:text-lg text-white font-bold">
+              Score: {score}
+            </h3>
+            <h3 className="text-base md:text-lg text-white">
+              High Score: {highScore}
+            </h3>
+          </div>
+
+          {powerUpSystem.current.isActive() && (
+            <h3 className="text-base md:text-lg text-end text-yellow-400">
+              Power-up: {powerUpSystem.current.getActivePowerUp()}
+            </h3>
+          )}
+        </div>
       </div>
+
+      {/* Game Menu */}
+      <Popup
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        title="Game Menu"
+      >
+        <GameMenu onClose={() => setIsMenuOpen(false)} />
+      </Popup>
 
       {gameState.isGameOver && (
         <div className="absolute inset-0 bg-[#121212] bg-opacity-50 flex items-center justify-center z-20">

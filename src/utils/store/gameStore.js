@@ -21,6 +21,14 @@ export const useGameStore = create((set) => ({
     scoreMultiplier: 1,
   },
 
+  // // AI state
+  // aiState: {
+  //   snake: [{ x: 0, y: 0 }],
+  //   direction: { x: 1, y: 0 },
+  //   score: 0,
+  // },
+
+  // Update Game State
   updateGameState: (updater) =>
     set((state) => ({
       gameState:
@@ -28,4 +36,13 @@ export const useGameStore = create((set) => ({
           ? { ...state.gameState, ...updater(state.gameState) }
           : { ...state.gameState, ...updater },
     })),
+
+  // Update AI state
+  // updateAIState: (updater) =>
+  //   set((state) => ({
+  //     aiState:
+  //       typeof updater === "function"
+  //         ? { ...state.aiState, ...updater(state.aiState) }
+  //         : { ...state.aiState, ...updater },
+  //   })),
 }));

@@ -9,13 +9,14 @@ Currently, two official plugins are available:
 
 src/
 ├── components/
-│ ├── ui/
-│ │ ├── Popup.jsx
+│ ├── common/
+│ │ └── Popup.jsx
+│ ├── controller/
 │ │ └── VirtualPad.jsx
-│ └── sprites/
-│ ├── Player.jsx
-│ ├── Food.jsx
-│ └── PowerUp.jsx
+│ ├── sprites/
+│ │ ├── Player.jsx
+│ │ ├── Food.jsx
+│ │ └── PowerUp.jsx
 │ └── tilesets/
 │ └── Map.jsx
 ├── pages/
