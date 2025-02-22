@@ -3,6 +3,7 @@ export class PowerUpSystem {
     this.gridSize = gridSize;
     this.powerUpTypes = {
       slowMotion: {
+        displayName: "Slow Motion",
         color: "#87CEEB",
         duration: 8000,
         effect: (gameState) => ({
@@ -13,6 +14,7 @@ export class PowerUpSystem {
       },
 
       fastMotion: {
+        displayName: "Fast Motion",
         color: "#FF4500",
         duration: 6000,
         effect: (gameState) => ({
@@ -23,6 +25,7 @@ export class PowerUpSystem {
       },
 
       ghostMode: {
+        displayName: "Ghost Mode",
         color: "#9370DB",
         duration: 9000,
         effect: (gameState) => ({
@@ -32,18 +35,21 @@ export class PowerUpSystem {
         probability: 0.25,
       },
 
-      doubleScore: {
+      doublePoint: {
+        displayName: "Double Points",
         color: "#FFC107",
         duration: 10000,
         effect: (gameState) => ({
           ...gameState,
-          scoreMultiplier: 2,
+          scoreMultiplier: 5,
         }),
         probability: 0.25,
       },
     };
-    this.activePowerUp = null;
-    this.powerUpTimer = null;
+
+    this.activePowerUps = new Map();
+    this.powerUpTimers = new Map();
+    this.remainingTime = 0;
   }
 
   generatePowerUp(width, height, snake) {
@@ -81,49 +87,76 @@ export class PowerUpSystem {
   }
 
   activatePowerUp(powerUpType, gameState) {
-    if (this.powerUpTimer) {
-      clearTimeout(this.powerUpTimer);
+    if (this.powerUpTimers.has(powerUpType)) {
+      clearTimeout(this.powerUpTimers.get(powerUpType));
     }
 
     const powerUp = this.powerUpTypes[powerUpType];
     if (!powerUp) return gameState;
 
-    this.activePowerUp = powerUpType;
-    const newGameState = powerUp.effect(gameState);
+    this.activePowerUps.set(powerUpType, powerUp);
+    // this.remainingTime = powerUp.duration;
 
+    const newGameState = powerUp.effect(gameState);
     return newGameState;
   }
 
-  startPowerUpTimer(duration, updateGameState) {
-    if (this.powerUpTimer) {
-      clearTimeout(this.powerUpTimer);
+  startPowerUpTimer(
+    duration,
+    updateGameState,
+    updateTimerUI,
+    powerUpType,
+    setActivePowerUp
+  ) {
+    if (this.powerUpTimers.has(powerUpType)) {
+      clearTimeout(this.powerUpTimers.get(powerUpType));
     }
 
-    this.powerUpTimer = setTimeout(() => {
-      this.deactivatePowerUp(updateGameState);
-    }, duration);
+    const startTime = Date.now();
+    const timerId = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(duration - elapsed, 0);
+
+      updateTimerUI(powerUpType, remaining);
+
+      if (remaining <= 0) {
+        clearInterval(timerId);
+        this.deactivatePowerUp(updateGameState, powerUpType, setActivePowerUp);
+      }
+    }, 100);
+
+    this.powerUpTimers.set(powerUpType, timerId);
   }
 
-  deactivatePowerUp(updateGameState) {
-    if (this.activePowerUp) {
-      updateGameState((prev) => {
-        const resetState = {
-          ...prev,
-          isGhostMode: false,
-          scoreMultiplier: 1,
-          updateInterval: 200,
-        };
-        return resetState;
-      });
-      this.activePowerUp = null;
-    }
+  deactivatePowerUp(updateGameState, powerUpType, setActivePowerUp) {
+    this.activePowerUps.delete(powerUpType);
+    this.powerUpTimers.delete(powerUpType);
+
+    updateGameState((prev) => {
+      const resetState = {
+        ...prev,
+        isGhostMode: this.activePowerUps.has("ghostMode"),
+        scoreMultiplier: this.activePowerUps.has("doublePoint") ? 5 : 1,
+        updateInterval: this.calculateUpdateInterval(),
+      };
+      return resetState;
+    });
+
+    setActivePowerUp(powerUpType, null);
   }
 
-  isActive() {
-    return this.activePowerUp !== null;
+  calculateUpdateInterval() {
+    let interval = 200;
+    if (this.activePowerUps.has("slowMotion")) interval *= 1.5;
+    if (this.activePowerUps.has("fastMotion")) interval *= 0.5;
+    return interval;
   }
 
-  getActivePowerUp() {
-    return this.activePowerUp;
+  isActive(powerUpType) {
+    return this.activePowerUps.has(powerUpType);
+  }
+
+  getActivePowerUp(powerUpType) {
+    return this.activePowerUps.get(powerUpType);
   }
 }

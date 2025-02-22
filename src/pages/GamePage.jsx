@@ -7,7 +7,7 @@ import { FoodSystem } from "../utils/systems/FoodSystem";
 import { PowerUpSystem } from "../utils/systems/PowerUpSystem";
 
 import Player from "../components/sprites/Player";
-import Map from "../components/tilesets/Map";
+import Tileset from "../components/tilesets/Tileset";
 import VirtualPad from "../components/controller/VirtualPad";
 import Popup from "../components/common/Popup";
 import GameMenu from "../components/layout/GameMenu";
@@ -18,6 +18,8 @@ function GamePage() {
   const scoringSystem = useRef(new ScoringSystem());
   const foodSystem = useRef(new FoodSystem(20));
   const powerUpSystem = useRef(new PowerUpSystem(20));
+  const [activePowerUps, setActivePowerUps] = useState(new Map());
+  const [powerUpTimers, setPowerUpTimers] = useState(new Map());
 
   const gridSize = 20;
   const {
@@ -133,6 +135,24 @@ function GamePage() {
     });
   };
 
+  // Function untuk update specific power-up timer
+  const updatePowerUpTimer = (powerUpType, remaining) => {
+    setPowerUpTimers((prev) => new Map(prev).set(powerUpType, remaining));
+  };
+
+  // Function untuk update active power-ups
+  const updateActivePowerUp = (powerUpType, powerUpData) => {
+    setActivePowerUps((prev) => {
+      const newMap = new Map(prev);
+      if (powerUpData === null) {
+        newMap.delete(powerUpType);
+      } else {
+        newMap.set(powerUpType, powerUpData);
+      }
+      return newMap;
+    });
+  };
+
   // Main game loop
   useEffect(() => {
     if (!canvasRef.current || dimensions.width === 0 || gameState.isGameOver)
@@ -209,9 +229,14 @@ function GamePage() {
             prev
           );
 
+          updateActivePowerUp(prev.powerUp.type, prev.powerUp);
+
           powerUpSystem.current.startPowerUpTimer(
             prev.powerUp.duration,
-            updateGameState
+            updateGameState,
+            updatePowerUpTimer,
+            prev.powerUp.type,
+            updateActivePowerUp
           );
 
           const newPowerUp = powerUpSystem.current.generatePowerUp(
@@ -265,7 +290,7 @@ function GamePage() {
       <div className="absolute top-4 px-6 z-20">
         <button
           onClick={() => setIsMenuOpen(true)}
-          className="bg-primary-900 bg-opacity-10 backdrop-blur-md p-2 border border-primary-200 border-opacity-20 rounded-lg"
+          className="bg-primary-900 bg-opacity-10 backdrop-blur-sm p-2 border border-primary-200 border-opacity-20 rounded-lg"
         >
           <Menu className="text-neutral-white" size={24} />
         </button>
@@ -291,11 +316,32 @@ function GamePage() {
             </h3>
           </div>
 
-          {powerUpSystem.current.isActive() && (
+          {/* {powerUpSystem.current.isActive() && (
             <h3 className="text-base md:text-xl text-end text-yellow-400">
               Power-up: {powerUpSystem.current.getActivePowerUp()}
             </h3>
-          )}
+          )} */}
+
+          {/* Render multiple power-ups */}
+          <div className="flex flex-col space-y-2">
+            {Array.from(activePowerUps).map(([type, powerUp]) => (
+              <div
+                key={type}
+                className="flex flex-col text-accent-amber text-end"
+              >
+                <h3
+                  className="text-base md:text-xl"
+                  style={{ color: powerUp.color }}
+                >
+                  {powerUp.displayName}
+                </h3>
+                <p className="text-base md:text-xl">
+                  Time Left:{" "}
+                  {((powerUpTimers.get(type) || 0) / 1000).toFixed(1)}s
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -318,7 +364,11 @@ function GamePage() {
 
       {/* {showPopup && <Popup onClose={() => setShowPopup(false)} />} */}
 
-      <Map canvasRef={canvasRef} dimensions={dimensions} gridSize={gridSize} />
+      <Tileset
+        canvasRef={canvasRef}
+        dimensions={dimensions}
+        gridSize={gridSize}
+      />
       <Player
         canvasRef={canvasRef}
         snake={gameState.snake}

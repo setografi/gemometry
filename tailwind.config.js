@@ -18,6 +18,7 @@ export default {
         accent: {
           blue: "#4D4DFF",
           bluetwo: "#5C5CB6",
+          amber: "#FFC107",
         },
         neutral: {
           white: "#FFFFFF",
