@@ -1,9 +1,6 @@
-import { useEffect, useCallback } from "react";
-import { useGameStore } from "../utils/store/gameStore";
+import { useCallback, useEffect } from "react";
 
-export function useControl() {
-  const { gameState, updateGameState } = useGameStore();
-
+export function useGameControls(gameState, updateGameState) {
   const handleKeyPress = useCallback(
     (e) => {
       if (gameState.isGameOver) return;
@@ -30,8 +27,25 @@ export function useControl() {
     [gameState.isGameOver, updateGameState]
   );
 
+  const handleVirtualPadInput = (newDirection) => {
+    updateGameState((prev) => {
+      if (
+        prev.direction.x === -newDirection.x &&
+        prev.direction.y === -newDirection.y
+      ) {
+        return prev;
+      }
+      return { ...prev, direction: newDirection };
+    });
+  };
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [handleKeyPress]);
+
+  return {
+    handleKeyPress,
+    handleVirtualPadInput,
+  };
 }

@@ -14,9 +14,9 @@ const HomePage = () => {
   const startGame = () => navigate("/game");
 
   return (
-    <div className="relative min-h-screen bg-primary-900 overflow-hidden">
+    <div className="relative max-h-screen bg-primary-900 overflow-hidden">
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-8 flex flex-col min-h-screen">
+      <div className="relative h-screen flex flex-col z-10">
         <div className="flex-grow flex flex-col items-center justify-center text-center">
           {/* Title */}
           <div className="flex flex-col space-y-2 mb-10">
