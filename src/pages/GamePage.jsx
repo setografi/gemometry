@@ -262,30 +262,13 @@ function GamePage() {
       ref={containerRef}
       className="fixed inset-0 w-full h-full overflow-hidden"
     >
-      <div className="absolute top-4 w-full flex flex-row justify-between px-6 z-10">
+      <div className="absolute top-4 px-6 z-20">
         <button
           onClick={() => setIsMenuOpen(true)}
-          className="bg-purple-600 p-2 rounded-lg"
+          className="bg-primary-900 bg-opacity-10 backdrop-blur-md p-2 border border-primary-200 border-opacity-20 rounded-lg"
         >
-          <Menu className="text-white" size={24} />
+          <Menu className="text-neutral-white" size={24} />
         </button>
-
-        <div className="flex flex-col space-y-2">
-          <div className="flex flex-row space-x-6">
-            <h3 className="text-base md:text-lg text-white font-bold">
-              Score: {score}
-            </h3>
-            <h3 className="text-base md:text-lg text-white">
-              High Score: {highScore}
-            </h3>
-          </div>
-
-          {powerUpSystem.current.isActive() && (
-            <h3 className="text-base md:text-lg text-end text-yellow-400">
-              Power-up: {powerUpSystem.current.getActivePowerUp()}
-            </h3>
-          )}
-        </div>
       </div>
 
       {/* Game Menu */}
@@ -297,13 +280,34 @@ function GamePage() {
         <GameMenu onClose={() => setIsMenuOpen(false)} />
       </Popup>
 
+      <div className="absolute top-4 w-full flex flex-row justify-end px-6 z-10">
+        <div className="flex flex-col space-y-2">
+          <div className="flex flex-row space-x-6">
+            <h3 className="text-base md:text-xl text-neutral-white">
+              Score: {score}
+            </h3>
+            <h3 className="text-base md:text-xl text-neutral-white">
+              High Score: {highScore}
+            </h3>
+          </div>
+
+          {powerUpSystem.current.isActive() && (
+            <h3 className="text-base md:text-xl text-end text-yellow-400">
+              Power-up: {powerUpSystem.current.getActivePowerUp()}
+            </h3>
+          )}
+        </div>
+      </div>
+
       {gameState.isGameOver && (
-        <div className="absolute inset-0 bg-[#121212] bg-opacity-50 flex items-center justify-center z-20">
-          <div className="bg-[#121212] bg-opacity-10 backdrop-blur-md rounded-lg p-10 max-w-sm w-full text-center shadow-lg border border-white border-opacity-20">
-            <h2 className="text-2xl font-bold text-white mb-4">Game Over!</h2>
-            <p className="text-white mb-6">Final Score: {score}</p>
+        <div className="absolute inset-0 bg-primary-900 bg-opacity-50 flex items-center justify-center z-20">
+          <div className="bg-primary-900 bg-opacity-10 backdrop-blur-md rounded-lg p-10 max-w-sm w-full text-center shadow-lg border border-primary-200 border-opacity-20">
+            <h2 className="text-4xl text-neutral-white mb-4">Game Over!</h2>
+            <p className="text-neutral-white text-base mb-6">
+              Final Score: {score}
+            </p>
             <button
-              className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition duration-300"
+              className="bg-neutral-white text-primary-900 text-base px-6 py-3 rounded hover:bg-primary-200 transition duration-300"
               onClick={handleRestart}
             >
               Play Again

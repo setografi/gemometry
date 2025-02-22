@@ -4,7 +4,7 @@ export class PowerUpSystem {
     this.powerUpTypes = {
       slowMotion: {
         color: "#87CEEB",
-        duration: 5000,
+        duration: 8000,
         effect: (gameState) => ({
           ...gameState,
           updateInterval: gameState.updateInterval * 1.5,
@@ -14,7 +14,7 @@ export class PowerUpSystem {
 
       fastMotion: {
         color: "#FF4500",
-        duration: 5000,
+        duration: 6000,
         effect: (gameState) => ({
           ...gameState,
           updateInterval: gameState.updateInterval * 0.5,
@@ -24,7 +24,7 @@ export class PowerUpSystem {
 
       ghostMode: {
         color: "#9370DB",
-        duration: 5000,
+        duration: 9000,
         effect: (gameState) => ({
           ...gameState,
           isGhostMode: true,
@@ -34,7 +34,7 @@ export class PowerUpSystem {
 
       doubleScore: {
         color: "#FFC107",
-        duration: 5000,
+        duration: 10000,
         effect: (gameState) => ({
           ...gameState,
           scoreMultiplier: 2,

@@ -5,24 +5,26 @@ const GameMenu = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-4">
+    <div className="w-full flex flex-col items-start space-y-2">
       <button
-        onClick={() => navigate("/")}
-        className="w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold"
+        onClick={onClose}
+        className="text-neutral-white text-base hover:text-primary-400 duration-300 transition-all"
       >
-        Return to Home
+        Continue
       </button>
+
       <button
         onClick={() => window.location.reload()}
-        className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold"
+        className="text-neutral-white text-base hover:text-primary-400 duration-300 transition-all"
       >
         Restart Game
       </button>
+
       <button
-        onClick={onClose}
-        className="w-full py-3 px-6 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold"
+        onClick={() => navigate("/")}
+        className="text-neutral-white text-base hover:text-primary-400 duration-300 transition-all"
       >
-        Resume
+        Return to Home
       </button>
     </div>
   );

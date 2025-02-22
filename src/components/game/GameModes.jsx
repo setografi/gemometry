@@ -10,9 +10,8 @@ const GameModes = ({ onClose, onStartGame }) => {
   ];
 
   return (
-    <div className="relative">
-      <Button onClick={onClose} />
-      <div className="grid gap-4 mt-6">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
         {modes.map((mode) => (
           <button
             key={mode.id}
@@ -21,14 +20,18 @@ const GameModes = ({ onClose, onStartGame }) => {
             }
             className={`p-4 rounded-lg text-left transition-all ${
               mode.available
-                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                ? "bg-neutral-white text-primary-900 hover:bg-primary-200 duration-300 transition-all"
+                : "bg-primary-700 text-neutral-white cursor-not-allowed"
             }`}
           >
-            <div className="font-bold text-lg">{mode.name}</div>
-            {!mode.available && <div className="text-sm">Coming Soon</div>}
+            <div className="text-xl">{mode.name}</div>
+            {!mode.available && <div className="text-base">Coming Soon</div>}
           </button>
         ))}
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={onClose} />
       </div>
     </div>
   );

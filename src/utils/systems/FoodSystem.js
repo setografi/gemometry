@@ -3,7 +3,7 @@ export class FoodSystem {
     this.gridSize = gridSize;
     this.foodTypes = {
       normal: { color: "#F2F2F2", points: 1, probability: 0.9 }, // 90% chance
-      special: { color: "#FFC107", points: 5, probability: 0.3 }, // 30% chance
+      special: { color: "#FFC107", points: 5, probability: 0.4 }, // 30% chance
     };
   }
 
